@@ -209,6 +209,6 @@ fn store_tokens(tokens: pb::tokens::Tokens, store: store::StoreSetString) {
             token.name
         );
         let key = format!("token:{}", token.address);
-        store.set(1, key, &proto::encode(&token).unwrap());
+        store.set(1, key, &token.name);
     }
 }
