@@ -44,6 +44,9 @@ At this point, we're ready to build our WASM binary and Protobuf definitions.
 cargo build --target wasm32-unknown-unknown --release
 ```
 
+```
+export SUBSTREAMS_API_TOKEN=$(curl https://auth.dfuse.io/v1/auth/issue -s --data-binary '{"api_key":"'$STREAMINGFAST_KEY'"}' | jq -r .token)
+```
 The resulting WASM artifact will be found at `./target/wasm32-unknown-unknown/release/substreams.wasm`
 
 ## Run your Substream
@@ -55,6 +58,7 @@ We're now ready to run our example Substream!
 ```bash
 # to run the map module
 substreams run -e mainnet.eth.streamingfast.io:443 substreams.yaml map_transfers --start-block 12292922 --stop-block +1
+substreams run -e mainnet.eth.streamingfast.io:443 substreams.yaml map_tokens --start-block 12292922 --stop-block +100
 
 # to run the store module (and the map module in the background)
 substreams run -e mainnet.eth.streamingfast.io:443 substreams.yaml store_transfers --start-block 12292922 --stop-block +1

@@ -84,34 +84,34 @@ fn map_tokens(blk: eth::Block) -> Result<pb::tokens::Tokens, substreams::errors:
                         code_change_len += code_change.new_code.len()
                     }
 
-                    log::debug!(
-                        "found contract creation: {}, caller {}, code change {}, input {}",
-                        Hex(&call.address),
-                        Hex(&call.caller),
-                        code_change_len,
-                        call_input_len,
-                    );
+                    // log::debug!(
+                    //     "found contract creation: {}, caller {}, code change {}, input {}",
+                    //     Hex(&call.address),
+                    //     Hex(&call.caller),
+                    //     code_change_len,
+                    //     call_input_len,
+                    // );
 
                     if code_change_len <= 150 {
                         // optimization to skip none viable SC
-                        log::info!(
-                            "skipping too small code to be a token contract: {}",
-                            Hex(&call.address)
-                        );
+                        // log::info!(
+                        //     "skipping too small code to be a token contract: {}",
+                        //     Hex(&call.address)
+                        // );
                         continue;
                     }
                 } else {
-                    log::debug!(
-                        "found proxy initialization: contract {}, caller {}",
-                        Hex(&call.address),
-                        Hex(&call.caller)
-                    );
+                    // log::debug!(
+                    //     "found proxy initialization: contract {}, caller {}",
+                    //     Hex(&call.address),
+                    //     Hex(&call.caller)
+                    // );
                 }
 
                 if call.caller == hex!("0000000000004946c0e9f43f4dee607b0ef1fa1c")
                     || call.caller == hex!("00000000687f5b66638856396bee28c1db0178d1")
                 {
-                    log::debug!("skipping known caller address");
+                    // log::debug!("skipping known caller address");
                     continue;
                 }
 
@@ -121,21 +121,21 @@ fn map_tokens(blk: eth::Block) -> Result<pb::tokens::Tokens, substreams::errors:
                 let response_decimal = rpc_responses_unmarshalled_decimal.responses;
                 if response_decimal[0].failed {
                     let decimals_error = String::from_utf8_lossy(response_decimal[0].raw.as_ref());
-                    log::debug!(
-                        "{} is not an ERC20 token contract because of 'eth_call' failures [decimals: {}]",
-                        Hex(&call.address),
-                        decimals_error,
-                    );
+                    // log::debug!(
+                    //     "{} is not an ERC20 token contract because of 'eth_call' failures [decimals: {}]",
+                    //     Hex(&call.address),
+                    //     decimals_error,
+                    // );
                     continue;
                 }
 
                 let decoded_decimals = eth_utils::read_uint32(response_decimal[0].raw.as_ref());
                 if decoded_decimals.is_err() {
-                    log::debug!(
-                        "{} is not an ERC20 token contract decimal `eth_call` failed: {}",
-                        Hex(&call.address),
-                        decoded_decimals.err().unwrap(),
-                    );
+                    // log::debug!(
+                    //     "{} is not an ERC20 token contract decimal `eth_call` failed: {}",
+                    //     Hex(&call.address),
+                    //     decoded_decimals.err().unwrap(),
+                    // );
                     continue;
                 }
 
@@ -143,36 +143,39 @@ fn map_tokens(blk: eth::Block) -> Result<pb::tokens::Tokens, substreams::errors:
                 let rpc_responses_unmarshalled: substreams_ethereum::pb::eth::rpc::RpcResponses =
                     substreams_ethereum::rpc::eth_call(&rpc_call_name_symbol);
                 let responses = rpc_responses_unmarshalled.responses;
+                log::debug!(
+                    "responses length: {}",
+                    responses.len()
+                );
                 if responses[0].failed || responses[1].failed {
                     let name_error = String::from_utf8_lossy(responses[0].raw.as_ref());
                     let symbol_error = String::from_utf8_lossy(responses[1].raw.as_ref());
-
-                    log::debug!(
-                        "{} is not an ERC20 token contract because of 'eth_call' failures [name: {}, symbol: {}]",
-                        Hex(&call.address),
-                        name_error,
-                        symbol_error,
-                    );
+                    // log::debug!(
+                    //     "{} is not an ERC20 token contract because of 'eth_call' failures [name: {}, symbol: {}]",
+                    //     Hex(&call.address),
+                    //     name_error,
+                    //     symbol_error,
+                    // );
                     continue;
                 };
 
-                let decoded_name = eth_utils::read_string(responses[1].raw.as_ref());
+                let decoded_name = eth_utils::read_string(responses[0].raw.as_ref());
                 if decoded_name.is_err() {
-                    log::debug!(
-                        "{} is not an ERC20 token contract name `eth_call` failed: {}",
-                        Hex(&call.address),
-                        decoded_name.err().unwrap(),
-                    );
+                    // log::debug!(
+                    //     "{} is not an ERC20 token contract name `eth_call` failed: {}",
+                    //     Hex(&call.address),
+                    //     decoded_name.err().unwrap(),
+                    // );
                     continue;
                 }
 
-                let decoded_symbol = eth_utils::read_string(responses[2].raw.as_ref());
+                let decoded_symbol = eth_utils::read_string(responses[1].raw.as_ref());
                 if decoded_symbol.is_err() {
-                    log::debug!(
-                        "{} is not an ERC20 token contract symbol `eth_call` failed: {}",
-                        Hex(&call.address),
-                        decoded_symbol.err().unwrap(),
-                    );
+                    // log::debug!(
+                    //     "{} is not an ERC20 token contract symbol `eth_call` failed: {}",
+                    //     Hex(&call.address),
+                    //     decoded_symbol.err().unwrap(),
+                    // );
                     continue;
                 }
 
