@@ -6,7 +6,7 @@ mod rpc_utils;
 use hex_literal::hex;
 use pb::erc721;
 use substreams::prelude::*;
-use substreams::{log, store::StoreAddInt64, Hex};
+use substreams::{log, store::StoreAddInt64, Hex, proto, store};
 use substreams_ethereum::{pb::eth::v2 as eth, NULL_ADDRESS};
 use crate::rpc_utils::create_rpc_calls;
 
@@ -199,4 +199,16 @@ fn map_tokens(blk: eth::Block) -> Result<pb::tokens::Tokens, substreams::errors:
         }
     }
     Ok(pb::tokens::Tokens { tokens })
+}
+
+#[substreams::handlers::store]
+fn store_tokens(tokens: pb::tokens::Tokens, store: store::StoreSetString) {
+    for token in tokens.tokens {
+        log::debug!(
+            "Storing token: {}",
+            token.name
+        );
+        let key = format!("token:{}", token.address);
+        store.set(1, key, &proto::encode(&token).unwrap());
+    }
 }
